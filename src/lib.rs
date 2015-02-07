@@ -11,61 +11,14 @@ extern crate gfx_graphics;
 extern crate opengl_graphics;
 extern crate sdl2;
 extern crate sdl2_window;
+extern crate graphics;
+extern crate fps_counter;
+extern crate current;
+extern crate shader_version;
 
-// Crates used to reexport.
-extern crate "ai_behavior" as ai_behavior_lib;
-extern crate "vecmath" as vecmath_lib;
-extern crate "shader_version" as shader_version_lib;
-extern crate "image" as image_lib;
-extern crate "graphics" as graphics_lib;
-extern crate "input" as input_lib;
-extern crate "event" as event_lib;
-extern crate "window" as window_lib;
-extern crate "cam" as cam_lib;
-extern crate "current" as current_lib;
-extern crate "quack" as quack_lib;
-extern crate "fps_counter" as fps_counter_lib;
-extern crate "drag_controller" as drag_controller_lib;
-extern crate "read_color" as read_color_lib;
-extern crate "select_color" as select_color_lib;
-
-// Reexports.
-pub use current_lib as current;
-pub use quack_lib as quack;
-pub use ai_behavior_lib as ai_behavior;
-pub use shader_version_lib as shader_version;
-pub use image_lib as image;
-pub use graphics_lib as graphics;
-pub use vecmath_lib as vecmath;
-pub use input_lib as input;
-pub use event_lib as event;
-pub use window_lib as window;
-pub use cam_lib as cam;
-pub use fps_counter_lib as fps_counter;
-pub use drag_controller_lib as drag_controller;
+extern crate piston;
 
 pub use sdl2_window::Sdl2Window as WindowBackEnd;
-pub use event::{
-    Event,
-    Events,
-    NoWindow,
-    RenderArgs,
-    UpdateArgs,
-    WindowSettings,
-};
-
-pub use quack::{
-    Action,
-    ActOn,
-    Get,
-    GetFrom,
-    Set,
-    SetAt,
-};
-pub use current::{
-    Current,
-    CurrentGuard,
-};
 
 #[cfg(feature = "include_gfx")]
 use gfx_graphics::G2D;
@@ -78,11 +31,9 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::ops::Deref;
 
-pub mod color {
-    //! Rexported libraries for working with colors
-    pub use read_color_lib as read_color;
-    pub use select_color_lib as select_color;
-}
+use piston::window::WindowSettings;
+use piston::quack::{ Get, Set };
+use current::{ Current, CurrentGuard };
 
 fn start_window<F>(
     opengl: shader_version::OpenGL,
@@ -212,8 +163,10 @@ pub fn current_fps_counter() -> Rc<RefCell<FPSCounter>> {
 }
 
 /// Returns an event iterator for the event loop
-pub fn events() -> event::Events<Rc<RefCell<WindowBackEnd>>, input::Input, event::Event> {
-    event::events(current_window())
+pub fn events() -> piston::event::Events<
+    Rc<RefCell<WindowBackEnd>>, piston::input::Input, piston::event::Event
+> {
+    piston::event::events(current_window())
 }
 
 /// Updates the FPS counter and gets the frames per second.
@@ -223,12 +176,12 @@ pub fn fps_tick() -> usize {
 
 /// Sets title of the current window.
 pub fn set_title(text: String) {
-    current_window().set_mut(window::Title(text));
+    current_window().set_mut(piston::window::Title(text));
 }
 
 /// Returns true if the current window should be closed.
 pub fn should_close() -> bool {
-    use window::ShouldClose;
+    use piston::window::ShouldClose;
     let ShouldClose(val) = current_window().get();
     val
 }
@@ -274,7 +227,7 @@ pub fn render_2d_opengl<F>(
 {
     use std::ops::Deref;
 
-    let window::Size([w, h]) = current_window().borrow().deref().get();
+    let piston::window::Size([w, h]) = current_window().borrow().deref().get();
     current_gl().borrow_mut().draw([0, 0, w as i32, h as i32], |c, g| {
         use graphics::*;
         if let Some(bg_color) = bg_color {
