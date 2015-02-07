@@ -73,7 +73,7 @@ fn start_gfx<F>(mut f: F)
     })));
     let mut g2d = Rc::new(RefCell::new(G2D::new(&mut *device.borrow_mut())));
     let mut renderer = Rc::new(RefCell::new(device.borrow_mut().create_renderer()));
-    let piston::event::window::Size([w, h]) = window.get(); 
+    let piston::window::Size([w, h]) = window.get(); 
     let mut frame = Rc::new(RefCell::new(gfx::Frame::new(w as u16, h as u16)));
 
     let device_guard = CurrentGuard::new(&mut device);
