@@ -1,4 +1,3 @@
-#![crate_name = "piston"]
 #![deny(missing_docs)]
 #![warn(dead_code)]
 

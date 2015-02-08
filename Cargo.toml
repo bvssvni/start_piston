@@ -18,11 +18,11 @@ authors = [
 
 [lib]
 
-name = "piston"
+name = "start_piston"
 path = "./src/lib.rs"
 
 [dependencies.piston]
-git = "https://github.com/pistondevelopers/piston"
+git = "https://github.com/PistonDevelopers/piston"
 
 [dependencies.vecmath]
 git = "https://github.com/pistondevelopers/vecmath"
