@@ -66,19 +66,37 @@ git = "https://github.com/pistondevelopers/gfx_graphics"
 #version = "0.0.2"
 
 [dependencies.pistoncore-sdl2_window]
+optional = true
 git = "https://github.com/pistondevelopers/sdl2_window"
 #version = "0.0.1"
 
+[dependencies.pistoncore-glfw_window]
+optional = true
+git = "https://github.com/pistondevelopers/glfw_window"
+#version = "0.0.0"
+
 [dependencies.sdl2]
+optional = true
 git = "https://github.com/AngryLawyer/rust-sdl2"
 #version = "0.0.19"
+
+[dependencies.glfw]
+optional = true
+git = "https://github.com/bjz/glfw-rs"
+#version = "0.0.0"
 
 [dependencies.gfx]
 optional = true
 git = "https://github.com/gfx-rs/gfx-rs"
 #version = "0.1.0"
 
+[dependencies]
+libc = "*"
+
 [features]
 default = []
 include_gfx = ["gfx", "piston2d-gfx_graphics"]
+include_sdl2 = ["sdl2", "pistoncore-sdl2_window"]
+include_glfw = ["glfw", "pistoncore-glfw_window"]
+include_gfx_sdl2 = ["include_gfx", "include_sdl2"]
 

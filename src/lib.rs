@@ -4,12 +4,20 @@
 //! A user friendly game engine written in Rust.
 
 #[cfg(feature = "include_gfx")]
+extern crate libc;
+#[cfg(feature = "include_gfx")]
 extern crate gfx;
 #[cfg(feature = "include_gfx")]
 extern crate gfx_graphics;
 extern crate opengl_graphics;
+#[cfg(feature = "include_sdl2")]
 extern crate sdl2;
+#[cfg(feature = "include_sdl2")]
 extern crate sdl2_window;
+#[cfg(feature = "include_glfw")]
+extern crate glfw;
+#[cfg(feature = "include_glfw")]
+extern crate glfw_window;
 extern crate graphics;
 extern crate fps_counter;
 extern crate current;
@@ -17,7 +25,10 @@ extern crate shader_version;
 
 extern crate piston;
 
+#[cfg(feature = "include_sdl2")]
 pub use sdl2_window::Sdl2Window as WindowBackEnd;
+#[cfg(feature = "include_glfw")]
+pub use glfw_window::GlfwWindow as WindowBackEnd;
 
 #[cfg(feature = "include_gfx")]
 use gfx_graphics::G2D;
@@ -67,8 +78,20 @@ fn start_gfx<F>(mut f: F)
 {
     let window = current_window();
 
-    let mut device = Rc::new(RefCell::new(gfx::GlDevice::new(|s| unsafe {
-        std::mem::transmute(sdl2::video::gl_get_proc_address(s))
+    let mut device = Rc::new(RefCell::new(gfx::GlDevice::new(|s| {
+        #[cfg(feature = "include_sdl2")]
+        fn get_proc_address(_: &WindowBackEnd, s: &str) ->
+            *const libc::types::common::c95::c_void {
+            unsafe { std::mem::transmute(sdl2::video::gl_get_proc_address(s)) }
+        }
+
+        #[cfg(feature = "include_glfw")]
+        fn get_proc_address(window: &WindowBackEnd, s: &str) ->
+            *const libc::types::common::c95::c_void {
+            window.get_proc_address(s)
+        }
+
+        get_proc_address(&*window.borrow(), s)
     })));
     let mut g2d = Rc::new(RefCell::new(G2D::new(&mut *device.borrow_mut())));
     let mut renderer = Rc::new(RefCell::new(device.borrow_mut().create_renderer()));
