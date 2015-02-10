@@ -18,6 +18,10 @@ extern crate sdl2_window;
 extern crate glfw;
 #[cfg(feature = "include_glfw")]
 extern crate glfw_window;
+#[cfg(feature = "include_glutin")]
+extern crate glutin;
+#[cfg(feature = "include_glutin")]
+extern crate glutin_window;
 extern crate graphics;
 extern crate fps_counter;
 extern crate current;
@@ -29,6 +33,8 @@ extern crate piston;
 pub use sdl2_window::Sdl2Window as WindowBackEnd;
 #[cfg(feature = "include_glfw")]
 pub use glfw_window::GlfwWindow as WindowBackEnd;
+#[cfg(feature = "include_glutin")]
+pub use glutin_window::GlutinWindow as WindowBackEnd;
 
 #[cfg(feature = "include_gfx")]
 use gfx_graphics::G2D;
@@ -86,12 +92,18 @@ fn start_gfx<F>(mut f: F)
         }
 
         #[cfg(feature = "include_glfw")]
-        fn get_proc_address(window: &WindowBackEnd, s: &str) ->
+        fn get_proc_address(window: &mut WindowBackEnd, s: &str) ->
             *const libc::types::common::c95::c_void {
-            window.get_proc_address(s)
+            window.window.get_proc_address(s)
         }
 
-        get_proc_address(&*window.borrow(), s)
+        #[cfg(feature = "include_glutin")]
+        fn get_proc_address(window: &WindowBackEnd, s: &str) ->
+            *const libc::types::common::c95::c_void {
+            window.window.get_proc_address(s)
+        }
+
+        get_proc_address(&mut *window.borrow_mut(), s)
     })));
     let mut g2d = Rc::new(RefCell::new(G2D::new(&mut *device.borrow_mut())));
     let mut renderer = Rc::new(RefCell::new(device.borrow_mut().create_renderer()));

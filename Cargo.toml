@@ -24,29 +24,13 @@ path = "./src/lib.rs"
 [dependencies.piston]
 git = "https://github.com/PistonDevelopers/piston"
 
-[dependencies.vecmath]
-git = "https://github.com/pistondevelopers/vecmath"
-#version = "0.0.3"
-
 [dependencies.shader_version]
 git = "https://github.com/pistondevelopers/shader_version"
 #version = "0.0.1"
 
-[dependencies.piston3d-cam]
-git = "https://github.com/pistondevelopers/cam"
-#version = "0.0.1"
-
-[dependencies.image]
-git = "https://github.com/pistondevelopers/image"
-#version = "~0.2.0"
-
 [dependencies.fps_counter]
 git = "https://github.com/pistondevelopers/fps_counter"
 #version = "0.0.0"
-
-[dependencies.piston2d-drag_controller]
-git = "https://github.com/pistondevelopers/drag_controller"
-#version = "0.0.1"
 
 [dependencies.current]
 git = "https://github.com/pistondevelopers/current"
@@ -75,6 +59,11 @@ optional = true
 git = "https://github.com/pistondevelopers/glfw_window"
 #version = "0.0.0"
 
+[dependencies.pistoncore-glutin_window]
+optional = true
+git = "https://github.com/pistondevelopers/glutin_window"
+#version = "0.0.0"
+
 [dependencies.sdl2]
 optional = true
 git = "https://github.com/AngryLawyer/rust-sdl2"
@@ -83,6 +72,11 @@ git = "https://github.com/AngryLawyer/rust-sdl2"
 [dependencies.glfw]
 optional = true
 git = "https://github.com/bjz/glfw-rs"
+#version = "0.0.0"
+
+[dependencies.glutin]
+optional = true
+git = "https://github.com/tomaka/glutin"
 #version = "0.0.0"
 
 [dependencies.gfx]
@@ -98,6 +92,8 @@ default = []
 include_gfx = ["gfx", "piston2d-gfx_graphics"]
 include_sdl2 = ["sdl2", "pistoncore-sdl2_window"]
 include_glfw = ["glfw", "pistoncore-glfw_window"]
+include_glutin = ["glutin", "pistoncore-glutin_window"]
 include_gfx_sdl2 = ["include_gfx", "include_sdl2"]
 include_gfx_glfw = ["include_gfx", "include_glfw"]
+include_gfx_glutin = ["include_gfx", "include_glutin"]
 
