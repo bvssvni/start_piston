@@ -66,6 +66,14 @@ fn start_window<F>(
     let mut gl = Rc::new(RefCell::new(Gl::new(opengl)));
     let mut fps_counter = Rc::new(RefCell::new(FPSCounter::new()));
 
+    #[cfg(feature = "include_sdl2")]
+    fn disable_vsync() { sdl2::video::gl_set_swap_interval(0); }
+
+    #[cfg(not(feature = "include_sdl2"))]
+    fn disable_vsync() {}
+
+    disable_vsync();
+
     let window_guard = CurrentGuard::new(&mut window);
     let gl_guard = CurrentGuard::new(&mut gl);
     let fps_counter_guard = CurrentGuard::new(&mut fps_counter);
