@@ -39,13 +39,12 @@ pub use glutin_window::GlutinWindow as WindowBackEnd;
 #[cfg(feature = "include_gfx")]
 use gfx_graphics::G2D;
 #[cfg(feature = "include_gfx")]
-use gfx::{ DeviceHelper };
+use gfx::{ DeviceExt };
 use opengl_graphics::Gl;
 use fps_counter::FPSCounter;
 
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::ops::Deref;
 
 use piston::window::WindowSettings;
 use piston::quack::{ Get, Set };
@@ -185,9 +184,9 @@ pub fn current_g2d() -> Rc<RefCell<G2D>> {
 }
 /// The current Gfx renderer
 #[cfg(feature = "include_gfx")]
-pub fn current_renderer() -> Rc<RefCell<gfx::Renderer<gfx::GlCommandBuffer>>> {
+pub fn current_renderer() -> Rc<RefCell<gfx::Renderer<gfx::GlDevice>>> {
     unsafe {
-        Current::<Rc<RefCell<gfx::Renderer<gfx::GlCommandBuffer>>>>::new().clone()
+        Current::<Rc<RefCell<gfx::Renderer<gfx::GlDevice>>>>::new().clone()
     }
 }
 /// The current Gfx frame
@@ -213,7 +212,9 @@ pub fn events() -> piston::event::Events<
 
 /// Updates the FPS counter and gets the frames per second.
 pub fn fps_tick() -> usize {
-    current_fps_counter().borrow_mut().tick()
+    let fps_counter = current_fps_counter();
+    let mut fps_counter = fps_counter.borrow_mut();
+    fps_counter.tick()
 }
 
 /// Sets title of the current window.
@@ -236,23 +237,29 @@ pub fn render_2d_gfx<F>(
 )
     where
         F: FnMut(graphics::Context, 
-            &mut gfx_graphics::GraphicsBackEnd<gfx::GlCommandBuffer>)
+            &mut gfx_graphics::GraphicsBackEnd<gfx::GlDevice>)
 {
     use gfx::Device;    
 
     let renderer = current_renderer();
     let mut renderer = renderer.borrow_mut();
     let renderer = &mut *renderer;
-    current_g2d().borrow_mut().draw(
+    let g2d = current_g2d();
+    let mut g2d = g2d.borrow_mut();
+    let frame = current_frame();
+    let frame = frame.borrow();
+    g2d.draw(
         renderer,
-        &mut *current_frame().borrow_mut(), 
+        &*frame,
         |c, g| {
             if let Some(bg_color) = bg_color {
                 graphics::clear(bg_color, g);
             }
             f(c, g);
         });
-    current_gfx_device().borrow_mut().submit(renderer.as_buffer());
+    let gfx_device = current_gfx_device();
+    let mut gfx_device = gfx_device.borrow_mut();
+    gfx_device.submit(renderer.as_buffer());
     renderer.reset();
 }
 
@@ -267,10 +274,12 @@ pub fn render_2d_opengl<F>(
     where
         F: FnMut(graphics::Context, &mut opengl_graphics::Gl)
 {
-    use std::ops::Deref;
-
-    let piston::window::Size([w, h]) = current_window().borrow().deref().get();
-    current_gl().borrow_mut().draw([0, 0, w as i32, h as i32], |c, g| {
+    let window = current_window();
+    let window = window.borrow();
+    let piston::window::Size([w, h]) = window.get();
+    let gl = current_gl();
+    let mut gl = gl.borrow_mut();
+    gl.draw([0, 0, w as i32, h as i32], |c, g| {
         use graphics::*;
         if let Some(bg_color) = bg_color {
             graphics::clear(bg_color, g);
