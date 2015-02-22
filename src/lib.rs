@@ -205,7 +205,7 @@ pub fn current_fps_counter() -> Rc<RefCell<FPSCounter>> {
 
 /// Returns an event iterator for the event loop
 pub fn events() -> piston::event::Events<
-    Rc<RefCell<WindowBackEnd>>, piston::input::Input, piston::event::Event
+    Rc<RefCell<WindowBackEnd>>, piston::event::Event
 > {
     piston::event::events(current_window())
 }
