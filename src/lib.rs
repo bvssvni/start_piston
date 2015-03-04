@@ -91,7 +91,7 @@ fn start_window<F>(
 }
 
 #[cfg(feature = "include_opengl")]
-fn start_opengl<F>(mut f: F)
+fn start_opengl<F>(opengl: shader_version::OpenGL, mut f: F)
     where
         F: FnMut()
 {
@@ -177,7 +177,7 @@ pub fn start<F>(
         F: FnMut()
 {
     start_window(opengl, window_settings, || {
-        start_opengl(|| {
+        start_opengl(opengl, || {
             if cfg!(feature = "include_gfx") {
                 start_gfx(|| f());
             } else {
