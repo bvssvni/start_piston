@@ -39,7 +39,7 @@ pub use glfw_window::GlfwWindow as WindowBackEnd;
 pub use glutin_window::GlutinWindow as WindowBackEnd;
 
 #[cfg(feature = "include_gfx")]
-use gfx_graphics::G2D;
+use gfx_graphics::Gfx2d;
 #[cfg(feature = "include_gfx")]
 use gfx::{ DeviceExt };
 #[cfg(feature = "include_gfx")]
@@ -47,7 +47,7 @@ use gfx_device_gl::{ GlDevice, GlResources };
 #[cfg(feature = "include_gfx")]
 use gfx_device_gl::CommandBuffer;
 
-use opengl_graphics::Gl;
+use opengl_graphics::GlGraphics;
 use fps_counter::FPSCounter;
 
 use std::rc::Rc;
@@ -69,7 +69,7 @@ fn start_window<F>(
         opengl,
         window_settings,
     )));
-    let mut gl = Rc::new(RefCell::new(Gl::new(opengl)));
+    let mut gl = Rc::new(RefCell::new(GlGraphics::new(opengl)));
     let mut fps_counter = Rc::new(RefCell::new(FPSCounter::new()));
 
     #[cfg(feature = "include_sdl2")]
@@ -119,7 +119,7 @@ fn start_gfx<F>(mut f: F)
 
         get_proc_address(&mut *window.borrow_mut(), s)
     })));
-    let mut g2d = Rc::new(RefCell::new(G2D::new(&mut *device.borrow_mut())));
+    let mut g2d = Rc::new(RefCell::new(Gfx2d::new(&mut *device.borrow_mut())));
     let mut renderer = Rc::new(RefCell::new(device.borrow_mut().create_renderer()));
     let piston::window::Size([w, h]) = window.get(); 
     let mut frame = Rc::new(RefCell::new(gfx::Frame::<GlResources>::new(w as u16, h as u16)));
@@ -177,16 +177,16 @@ pub fn current_gfx_device() -> Rc<RefCell<GlDevice>> {
     }
 }
 /// The current opengl_graphics back-end
-pub fn current_gl() -> Rc<RefCell<Gl>> {
+pub fn current_gl() -> Rc<RefCell<GlGraphics>> {
     unsafe {
-        Current::<Rc<RefCell<Gl>>>::new().clone()
+        Current::<Rc<RefCell<GlGraphics>>>::new().clone()
     }
 }
 /// The current gfx_graphics back-end
 #[cfg(feature = "include_gfx")]
-pub fn current_g2d() -> Rc<RefCell<G2D<GlDevice>>> {
+pub fn current_g2d() -> Rc<RefCell<Gfx2d<GlDevice>>> {
     unsafe {
-        Current::<Rc<RefCell<G2D<GlDevice>>>>::new().clone()
+        Current::<Rc<RefCell<Gfx2d<GlDevice>>>>::new().clone()
     }
 }
 /// The current Gfx renderer
@@ -251,11 +251,11 @@ pub fn render_2d_gfx<F>(
     let renderer = current_renderer();
     let mut renderer = renderer.borrow_mut();
     let renderer = &mut *renderer;
-    let g2d = current_g2d();
-    let mut g2d = g2d.borrow_mut();
+    let gfx = current_g2d();
+    let mut gfx = gfx.borrow_mut();
     let frame = current_frame();
     let frame = frame.borrow();
-    g2d.draw(
+    gfx.draw(
         renderer,
         &*frame,
         |c, g| {
