@@ -8,6 +8,8 @@ extern crate libc;
 #[cfg(feature = "include_gfx")]
 extern crate gfx;
 #[cfg(feature = "include_gfx")]
+extern crate gfx_device_gl;
+#[cfg(feature = "include_gfx")]
 extern crate gfx_graphics;
 extern crate opengl_graphics;
 #[cfg(feature = "include_sdl2")]
@@ -40,6 +42,11 @@ pub use glutin_window::GlutinWindow as WindowBackEnd;
 use gfx_graphics::G2D;
 #[cfg(feature = "include_gfx")]
 use gfx::{ DeviceExt };
+#[cfg(feature = "include_gfx")]
+use gfx_device_gl::{ GlDevice, GlResources };
+#[cfg(feature = "include_gfx")]
+use gfx_device_gl::CommandBuffer;
+
 use opengl_graphics::Gl;
 use fps_counter::FPSCounter;
 
@@ -91,7 +98,7 @@ fn start_gfx<F>(mut f: F)
 {
     let window = current_window();
 
-    let mut device = Rc::new(RefCell::new(gfx::GlDevice::new(|s| {
+    let mut device = Rc::new(RefCell::new(GlDevice::new(|s| {
         #[cfg(feature = "include_sdl2")]
         fn get_proc_address(_: &WindowBackEnd, s: &str) ->
             *const libc::types::common::c95::c_void {
@@ -115,7 +122,7 @@ fn start_gfx<F>(mut f: F)
     let mut g2d = Rc::new(RefCell::new(G2D::new(&mut *device.borrow_mut())));
     let mut renderer = Rc::new(RefCell::new(device.borrow_mut().create_renderer()));
     let piston::window::Size([w, h]) = window.get(); 
-    let mut frame = Rc::new(RefCell::new(gfx::Frame::new(w as u16, h as u16)));
+    let mut frame = Rc::new(RefCell::new(gfx::Frame::<GlResources>::new(w as u16, h as u16)));
 
     let device_guard = CurrentGuard::new(&mut device);
     let g2d_guard = CurrentGuard::new(&mut g2d);
@@ -164,9 +171,9 @@ pub fn current_window() -> Rc<RefCell<WindowBackEnd>> {
 }
 /// The current Gfx device
 #[cfg(feature = "include_gfx")]
-pub fn current_gfx_device() -> Rc<RefCell<gfx::GlDevice>> {
+pub fn current_gfx_device() -> Rc<RefCell<GlDevice>> {
     unsafe {
-        Current::<Rc<RefCell<gfx::GlDevice>>>::new().clone()
+        Current::<Rc<RefCell<GlDevice>>>::new().clone()
     }
 }
 /// The current opengl_graphics back-end
@@ -177,23 +184,23 @@ pub fn current_gl() -> Rc<RefCell<Gl>> {
 }
 /// The current gfx_graphics back-end
 #[cfg(feature = "include_gfx")]
-pub fn current_g2d() -> Rc<RefCell<G2D>> {
+pub fn current_g2d() -> Rc<RefCell<G2D<GlDevice>>> {
     unsafe {
-        Current::<Rc<RefCell<G2D>>>::new().clone()
+        Current::<Rc<RefCell<G2D<GlDevice>>>>::new().clone()
     }
 }
 /// The current Gfx renderer
 #[cfg(feature = "include_gfx")]
-pub fn current_renderer() -> Rc<RefCell<gfx::Renderer<gfx::GlDevice>>> {
+pub fn current_renderer() -> Rc<RefCell<gfx::Renderer<CommandBuffer>>> {
     unsafe {
-        Current::<Rc<RefCell<gfx::Renderer<gfx::GlDevice>>>>::new().clone()
+        Current::<Rc<RefCell<gfx::Renderer<CommandBuffer>>>>::new().clone()
     }
 }
 /// The current Gfx frame
 #[cfg(feature = "include_gfx")]
-pub fn current_frame() -> Rc<RefCell<gfx::Frame>> {
+pub fn current_frame() -> Rc<RefCell<gfx::Frame<GlResources>>> {
     unsafe {
-        Current::<Rc<RefCell<gfx::Frame>>>::new().clone()
+        Current::<Rc<RefCell<gfx::Frame<GlResources>>>>::new().clone()
     }
 }
 /// The current FPS counter
@@ -237,7 +244,7 @@ pub fn render_2d_gfx<F>(
 )
     where
         F: FnMut(graphics::Context, 
-            &mut gfx_graphics::GraphicsBackEnd<gfx::GlDevice>)
+            &mut gfx_graphics::GraphicsBackEnd<gfx_device_gl::GlDevice>)
 {
     use gfx::Device;    
 
