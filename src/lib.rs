@@ -11,6 +11,7 @@ extern crate gfx;
 extern crate gfx_device_gl;
 #[cfg(feature = "include_gfx")]
 extern crate gfx_graphics;
+#[cfg(feature = "include_opengl")]
 extern crate opengl_graphics;
 #[cfg(feature = "include_sdl2")]
 extern crate sdl2;
@@ -47,6 +48,7 @@ use gfx_device_gl::{ GlDevice, GlResources };
 #[cfg(feature = "include_gfx")]
 use gfx_device_gl::CommandBuffer;
 
+#[cfg(feature = "include_opengl")]
 use opengl_graphics::GlGraphics;
 use fps_counter::FPSCounter;
 
@@ -69,7 +71,6 @@ fn start_window<F>(
         opengl,
         window_settings,
     )));
-    let mut gl = Rc::new(RefCell::new(GlGraphics::new(opengl)));
     let mut fps_counter = Rc::new(RefCell::new(FPSCounter::new()));
 
     #[cfg(feature = "include_sdl2")]
@@ -81,15 +82,36 @@ fn start_window<F>(
     disable_vsync();
 
     let window_guard = CurrentGuard::new(&mut window);
-    let gl_guard = CurrentGuard::new(&mut gl);
     let fps_counter_guard = CurrentGuard::new(&mut fps_counter);
 
     f();
 
     drop(window_guard);
-    drop(gl_guard);
     drop(fps_counter_guard);
 }
+
+#[cfg(feature = "include_opengl")]
+fn start_opengl<F>(mut f: F)
+    where
+        F: FnMut()
+{
+    let mut gl = Rc::new(RefCell::new(GlGraphics::new(opengl)));
+    
+    let gl_guard = CurrentGuard::new(&mut gl);
+
+    f();    
+
+    drop(gl_guard);
+}
+
+#[cfg(not(feature = "include_opengl"))]
+fn start_opengl<F>(mut f: F)
+    where
+        F: FnMut()
+{
+    f();
+}
+
 
 #[cfg(feature = "include_gfx")]
 fn start_gfx<F>(mut f: F)
@@ -155,11 +177,13 @@ pub fn start<F>(
         F: FnMut()
 {
     start_window(opengl, window_settings, || {
-        if cfg!(feature = "include_gfx") {
-            start_gfx(|| f());
-        } else {
-            f();
-        }
+        start_opengl(|| {
+            if cfg!(feature = "include_gfx") {
+                start_gfx(|| f());
+            } else {
+                f();
+            }
+        })
     });
 }
 
@@ -177,6 +201,7 @@ pub fn current_gfx_device() -> Rc<RefCell<GlDevice>> {
     }
 }
 /// The current opengl_graphics back-end
+#[cfg(feature = "include_opengl")]
 pub fn current_gl() -> Rc<RefCell<GlGraphics>> {
     unsafe {
         Current::<Rc<RefCell<GlGraphics>>>::new().clone()
@@ -274,6 +299,7 @@ pub fn render_2d_gfx<F>(
 ///
 /// Panics if called nested within the closure
 /// to prevent mutable aliases to the graphics back-end.
+#[cfg(feature = "include_opengl")]
 pub fn render_2d_opengl<F>(
     bg_color: Option<[f32; 4]>,
     mut f: F
