@@ -6,9 +6,8 @@ A high level experiment with [Piston](https://github.com/pistondevelopers/piston
 - `include_glfw`
 - `include_glutin`
 - `include_sdl2`
-- `include_gfx_glfw`
-- `include_gfx_glutin`
-- `include_gfx_sdl2`
+- `include_gfx`
+- `include_opengl`
 
 ### Example
 
