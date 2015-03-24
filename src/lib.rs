@@ -42,7 +42,7 @@ pub use glutin_window::GlutinWindow as WindowBackEnd;
 #[cfg(feature = "include_gfx")]
 use gfx_graphics::Gfx2d;
 #[cfg(feature = "include_gfx")]
-use gfx::{ DeviceExt };
+use gfx::traits::DeviceExt;
 #[cfg(feature = "include_gfx")]
 use gfx_device_gl::{ GlDevice, GlResources };
 #[cfg(feature = "include_gfx")]
@@ -209,16 +209,16 @@ pub fn current_gl() -> Rc<RefCell<GlGraphics>> {
 }
 /// The current gfx_graphics back-end
 #[cfg(feature = "include_gfx")]
-pub fn current_g2d() -> Rc<RefCell<Gfx2d<GlDevice>>> {
+pub fn current_g2d() -> Rc<RefCell<Gfx2d<GlResources>>> {
     unsafe {
-        Current::<Rc<RefCell<Gfx2d<GlDevice>>>>::new().clone()
+        Current::<Rc<RefCell<Gfx2d<GlResources>>>>::new().clone()
     }
 }
 /// The current Gfx renderer
 #[cfg(feature = "include_gfx")]
-pub fn current_renderer() -> Rc<RefCell<gfx::Renderer<CommandBuffer>>> {
+pub fn current_renderer() -> Rc<RefCell<gfx::Renderer<GlResources, CommandBuffer>>> {
     unsafe {
-        Current::<Rc<RefCell<gfx::Renderer<CommandBuffer>>>>::new().clone()
+        Current::<Rc<RefCell<gfx::Renderer<GlResources, CommandBuffer>>>>::new().clone()
     }
 }
 /// The current Gfx frame
@@ -269,7 +269,7 @@ pub fn render_2d_gfx<F>(
 )
     where
         F: FnMut(graphics::Context, 
-            &mut gfx_graphics::GraphicsBackEnd<gfx_device_gl::GlDevice>)
+            &mut gfx_graphics::GfxGraphics<GlResources, CommandBuffer>)
 {
     use gfx::Device;    
 
