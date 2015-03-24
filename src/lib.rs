@@ -105,7 +105,7 @@ fn start_opengl<F>(opengl: shader_version::OpenGL, mut f: F)
 }
 
 #[cfg(not(feature = "include_opengl"))]
-fn start_opengl<F>(mut f: F)
+fn start_opengl<F>(_opengl: shader_version::OpenGL, mut f: F)
     where
         F: FnMut()
 {
