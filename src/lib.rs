@@ -309,10 +309,10 @@ pub fn render_2d_opengl<F>(
 {
     let window = current_window();
     let window = window.borrow();
-    let piston::window::Size([w, h]) = window.get();
+    let piston::window::Size(size) = window.get();
     let gl = current_gl();
     let mut gl = gl.borrow_mut();
-    gl.draw([0, 0, w as i32, h as i32], |c, g| {
+    gl.draw([0, 0, size[0] as i32, size[1] as i32], |c, g| {
         use graphics::*;
         if let Some(bg_color) = bg_color {
             graphics::clear(bg_color, g);
