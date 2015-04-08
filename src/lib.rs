@@ -243,8 +243,10 @@ pub fn current_fps_counter() -> Rc<RefCell<FPSCounter>> {
 }
 
 /// Returns an event iterator for the event loop
-pub fn events() -> piston::event::Events<WindowBackEnd, piston::event::Event> {
-    piston::event::events(current_window())
+pub fn events() -> piston::event::events::Events<WindowBackEnd, piston::event::Event> {
+    use piston::event::Events;
+    
+    current_window().events()
 }
 
 /// Updates the FPS counter and gets the frames per second.
