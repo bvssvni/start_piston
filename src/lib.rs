@@ -321,13 +321,19 @@ pub fn render_2d_opengl<F>(
         F: FnMut(graphics::Context, &mut opengl_graphics::Gl)
 {
     use piston::window::Window;
+    use graphics::Viewport;
 
     let window = current_window();
     let window = window.borrow();
     let size = window.size();
+    let draw_size = window.draw_size();
     let gl = current_gl();
     let mut gl = gl.borrow_mut();
-    gl.draw([0, 0, size.width as i32, size.height as i32], |c, g| {
+    gl.draw(Viewport {
+        rect: [0, 0, draw_size.width as i32, draw_size.height as i32],
+        draw_size: [draw_size.width, draw_size.height],
+        window_size: [size.width, size.height]
+    }, |c, g| {
         use graphics::*;
         if let Some(bg_color) = bg_color {
             graphics::clear(bg_color, g);
