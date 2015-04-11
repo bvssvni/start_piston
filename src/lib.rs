@@ -284,8 +284,14 @@ pub fn render_2d_gfx<F>(
         F: FnMut(graphics::Context, 
             &mut gfx_graphics::GfxGraphics<Resources, CommandBuffer>)
 {
-    use gfx::Device;    
+    use gfx::Device;
+    use piston::window::Window;
+    use graphics::Viewport;
 
+    let window = current_window();
+    let window = window.borrow();
+    let size = window.size();
+    let draw_size = window.draw_size();
     let renderer = current_renderer();
     let mut renderer = renderer.borrow_mut();
     let renderer = &mut *renderer;
@@ -296,6 +302,11 @@ pub fn render_2d_gfx<F>(
     gfx.draw(
         renderer,
         &*frame,
+        Viewport {
+            rect: [0, 0, draw_size.width as i32, draw_size.height as i32],
+            draw_size: [draw_size.width, draw_size.height],
+            window_size: [size.width, size.height],
+        },
         |c, g| {
             if let Some(bg_color) = bg_color {
                 graphics::clear(bg_color, g);
