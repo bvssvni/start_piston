@@ -42,9 +42,7 @@ pub use glutin_window::GlutinWindow as WindowBackEnd;
 #[cfg(feature = "include_gfx")]
 use gfx_graphics::Gfx2d;
 #[cfg(feature = "include_gfx")]
-use gfx_device_gl::{ Device, Resources };
-#[cfg(feature = "include_gfx")]
-use gfx_device_gl::CommandBuffer;
+use gfx_device_gl::{ Device, Resources, CommandBuffer, Output };
 
 #[cfg(feature = "include_opengl")]
 use opengl_graphics::GlGraphics;
@@ -116,7 +114,7 @@ fn start_gfx<F>(mut f: F)
         F: FnMut()
 {
     use piston::window::Window;
-    use gfx::render::ext::factory::RenderFactory;
+    use gfx::render::RenderFactory;
 
     let window = current_window();
 
@@ -150,19 +148,19 @@ fn start_gfx<F>(mut f: F)
     let factory = Rc::new(RefCell::new(factory));
     let mut g2d = Rc::new(RefCell::new(Gfx2d::new(&mut *device.borrow_mut(), &mut *factory.borrow_mut())));
     let size = window.borrow().size(); 
-    let mut frame = Rc::new(RefCell::new(gfx::Frame::<Resources>::new(
+    let mut output = Rc::new(RefCell::new(factory.borrow_mut().make_fake_output(
         size.width as u16, size.height as u16)));
 
     let device_guard = CurrentGuard::new(&mut device);
     let g2d_guard = CurrentGuard::new(&mut g2d);
     let renderer_guard = CurrentGuard::new(&mut renderer);
-    let frame_guard = CurrentGuard::new(&mut frame);
+    let output_guard = CurrentGuard::new(&mut output);
 
     f();
     
     drop(g2d_guard);
     drop(renderer_guard);
-    drop(frame_guard);
+    drop(output_guard);
     drop(device_guard);
 }
 
@@ -230,9 +228,9 @@ pub fn current_renderer() -> Rc<RefCell<gfx::Renderer<Resources, CommandBuffer>>
 }
 /// The current Gfx frame
 #[cfg(feature = "include_gfx")]
-pub fn current_frame() -> Rc<RefCell<gfx::Frame<Resources>>> {
+pub fn current_output() -> Rc<RefCell<Output>> {
     unsafe {
-        Current::<Rc<RefCell<gfx::Frame<Resources>>>>::new().clone()
+        Current::<Rc<RefCell<Output>>>::new().clone()
     }
 }
 /// The current FPS counter
@@ -282,7 +280,7 @@ pub fn render_2d_gfx<F>(
 )
     where
         F: FnMut(graphics::Context, 
-            &mut gfx_graphics::GfxGraphics<Resources, CommandBuffer>)
+            &mut gfx_graphics::GfxGraphics<Resources, CommandBuffer, Output>)
 {
     use gfx::Device;
     use piston::window::Window;
@@ -297,11 +295,11 @@ pub fn render_2d_gfx<F>(
     let renderer = &mut *renderer;
     let gfx = current_g2d();
     let mut gfx = gfx.borrow_mut();
-    let frame = current_frame();
-    let frame = frame.borrow();
+    let output = current_output();
+    let output = output.borrow();
     gfx.draw(
         renderer,
-        &*frame,
+        &*output,
         Viewport {
             rect: [0, 0, draw_size.width as i32, draw_size.height as i32],
             draw_size: [draw_size.width, draw_size.height],
@@ -329,7 +327,7 @@ pub fn render_2d_opengl<F>(
     mut f: F
 )
     where
-        F: FnMut(graphics::Context, &mut opengl_graphics::Gl)
+        F: FnMut(graphics::Context, &mut opengl_graphics::GlGraphics)
 {
     use piston::window::Window;
     use graphics::Viewport;
