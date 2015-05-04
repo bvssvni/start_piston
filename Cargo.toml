@@ -99,7 +99,3 @@ include_gfx = ["gfx", "gfx_device_gl", "piston2d-gfx_graphics"]
 include_sdl2 = ["sdl2", "pistoncore-sdl2_window"]
 include_glfw = ["glfw", "pistoncore-glfw_window"]
 include_glutin = ["glutin", "pistoncore-glutin_window"]
-include_gfx_sdl2 = ["include_gfx", "include_sdl2"]
-include_gfx_glfw = ["include_gfx", "include_glfw"]
-include_gfx_glutin = ["include_gfx", "include_glutin"]
-
