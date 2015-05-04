@@ -13,6 +13,8 @@ extern crate gfx_device_gl;
 extern crate gfx_graphics;
 #[cfg(feature = "include_opengl")]
 extern crate opengl_graphics;
+#[cfg(feature = "include_glium")]
+extern crate glium_graphics;
 #[cfg(feature = "include_sdl2")]
 extern crate sdl2;
 #[cfg(feature = "include_sdl2")]
@@ -46,6 +48,8 @@ use gfx_device_gl::{ Device, Resources, CommandBuffer, Output };
 
 #[cfg(feature = "include_opengl")]
 use opengl_graphics::GlGraphics;
+#[cfg(feature = "include_glium")]
+use glium_graphics::{ Glium2d, GliumWindow };
 use fps_counter::FPSCounter;
 
 use std::rc::Rc;
@@ -107,6 +111,31 @@ fn start_opengl<F>(_opengl: shader_version::OpenGL, mut f: F)
     f();
 }
 
+#[cfg(feature = "include_glium")]
+fn start_glium<F>(opengl: shader_version::OpenGL, mut f: F)
+    where
+        F: FnMut()
+{
+    let window = current_window();
+    let mut glium_window = Rc::new(RefCell::new(GliumWindow::new(&window).unwrap()));
+    let mut glium2d = Rc::new(RefCell::new(Glium2d::new(opengl, &*glium_window.borrow())));
+
+    let glium_window_guard = CurrentGuard::new(&mut glium_window);
+    let glium2d_guard = CurrentGuard::new(&mut glium2d);
+
+    f();
+
+    drop(glium2d_guard);
+    drop(glium_window_guard);
+}
+
+#[cfg(not(feature = "include_glium"))]
+fn start_glium<F>(_opengl: shader_version::OpenGL, mut f: F)
+    where
+        F: FnMut()
+{
+    f();
+}
 
 #[cfg(feature = "include_gfx")]
 fn start_gfx<F>(mut f: F)
@@ -183,11 +212,9 @@ pub fn start<F>(
 {
     start_window(opengl, window_settings, || {
         start_opengl(opengl, || {
-            if cfg!(feature = "include_gfx") {
-                start_gfx(|| f());
-            } else {
-                f();
-            }
+            start_gfx(|| {
+                start_glium(opengl, || f());
+            })
         })
     });
 }
@@ -207,16 +234,30 @@ pub fn current_gfx_device() -> Rc<RefCell<Device>> {
 }
 /// The current opengl_graphics back-end
 #[cfg(feature = "include_opengl")]
-pub fn current_gl() -> Rc<RefCell<GlGraphics>> {
+pub fn current_gl_graphics() -> Rc<RefCell<GlGraphics>> {
     unsafe {
         Current::<Rc<RefCell<GlGraphics>>>::new().clone()
     }
 }
 /// The current gfx_graphics back-end
 #[cfg(feature = "include_gfx")]
-pub fn current_g2d() -> Rc<RefCell<Gfx2d<Resources>>> {
+pub fn current_gfx_graphics() -> Rc<RefCell<Gfx2d<Resources>>> {
     unsafe {
         Current::<Rc<RefCell<Gfx2d<Resources>>>>::new().clone()
+    }
+}
+/// The current glium window.
+#[cfg(feature = "include_glium")]
+pub fn current_glium_window() -> Rc<RefCell<GliumWindow>> {
+    unsafe {
+        Current::<Rc<RefCell<GliumWindow>>>::new().clone()
+    }
+}
+/// The current glium 2d.
+#[cfg(feature = "include_glium")]
+pub fn current_glium_2d() -> Rc<RefCell<Glium2d>> {
+    unsafe {
+        Current::<Rc<RefCell<Glium2d>>>::new().clone()
     }
 }
 /// The current Gfx renderer
@@ -293,7 +334,7 @@ pub fn render_2d_gfx<F>(
     let renderer = current_renderer();
     let mut renderer = renderer.borrow_mut();
     let renderer = &mut *renderer;
-    let gfx = current_g2d();
+    let gfx = current_gfx_graphics();
     let mut gfx = gfx.borrow_mut();
     let output = current_output();
     let output = output.borrow();
@@ -336,7 +377,7 @@ pub fn render_2d_opengl<F>(
     let window = window.borrow();
     let size = window.size();
     let draw_size = window.draw_size();
-    let gl = current_gl();
+    let gl = current_gl_graphics();
     let mut gl = gl.borrow_mut();
     gl.draw(Viewport {
         rect: [0, 0, draw_size.width as i32, draw_size.height as i32],
