@@ -65,7 +65,8 @@ fn start_window<F>(
     where
         F: FnMut()
 {
-    let mut window: WindowBackEnd = window_settings.into();
+    let window: WindowBackEnd = window_settings.into();
+    let mut window = Rc::new(RefCell::new(window));
     let mut fps_counter = Rc::new(RefCell::new(FPSCounter::new()));
 
     let window_guard = CurrentGuard::new(&mut window);
