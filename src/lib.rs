@@ -163,7 +163,7 @@ fn start_gfx<F>(mut f: F)
         Rc::new(RefCell::new(factory.create_renderer()));
     let mut device = Rc::new(RefCell::new(device));
     let factory = Rc::new(RefCell::new(factory));
-    let mut g2d = Rc::new(RefCell::new(Gfx2d::new(&mut *device.borrow_mut(), &mut *factory.borrow_mut())));
+    let mut g2d = Rc::new(RefCell::new(Gfx2d::new(&mut *factory.borrow_mut())));
     let size = window.borrow().size(); 
     let mut output = Rc::new(RefCell::new(factory.borrow_mut().make_fake_output(
         size.width as u16, size.height as u16)));
