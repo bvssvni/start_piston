@@ -1,7 +1,6 @@
 [package]
-
 name = "start_piston"
-version = "0.0.7"
+version = "0.1.0"
 authors = [
     "bvssvni <bvssvni@gmail.com>",
     "Coeuvre <coeuvre@gmail.com>",
@@ -17,7 +16,6 @@ authors = [
 ]
 
 [lib]
-
 name = "start_piston"
 path = "./src/lib.rs"
 
