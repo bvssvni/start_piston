@@ -59,17 +59,13 @@ use piston::window::WindowSettings;
 use current::{ Current, CurrentGuard };
 
 fn start_window<F>(
-    opengl: shader_version::OpenGL,
     window_settings: WindowSettings,
     mut f: F
 )
     where
         F: FnMut()
 {
-    let mut window = Rc::new(RefCell::new(WindowBackEnd::new(
-        opengl,
-        window_settings,
-    )));
+    let mut window: WindowBackEnd = window_settings.into();
     let mut fps_counter = Rc::new(RefCell::new(FPSCounter::new()));
 
     let window_guard = CurrentGuard::new(&mut window);
@@ -195,14 +191,16 @@ fn start_gfx<F>(mut f: F)
 
 /// Initializes window and sets up current objects.
 pub fn start<F>(
-    opengl: shader_version::OpenGL,
     window_settings: WindowSettings,
     mut f: F
 )
     where
         F: FnMut()
 {
-    start_window(opengl, window_settings, || {
+    use shader_version::OpenGL;
+
+    let opengl = window_settings.get_maybe_opengl().unwrap_or(OpenGL::_3_2);
+    start_window(window_settings, || {
         start_opengl(opengl, || {
             start_gfx(|| {
                 start_glium(opengl, || f());
